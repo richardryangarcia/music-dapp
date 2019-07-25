@@ -1,0 +1,34 @@
+.artist{
+    margin: 100px 15px 15px 15px;
+
+
+.rounded {
+    border-radius: 7rem!important;
+}
+
+.banner {
+    text-align: center;
+
+    &.sub-header{
+        margin-top: 15px;
+    }
+
+    p {
+        font-size: 14px;
+    }
+}
+
+.bio {
+    border: none;
+    font-size: 12px;
+}
+
+.projects {
+    margin: 20px 20px 20px 20px;
+}
+
+.store {
+    margin: 20px 20px 20px 20px;
+}
+
+}
