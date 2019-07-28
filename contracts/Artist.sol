@@ -1,4 +1,4 @@
-pragma solidity 0.5.0;
+pragma solidity 0.5.8;
 
 import "../client/node_modules/openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "../client/node_modules/openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
@@ -10,8 +10,7 @@ contract Artist is ERC20, ERC20Detailed {
     string public genre;
     string public bio;
     string public location;
-    string public url;
-    string public image;
+    string public imageHash;
 
     mapping (uint => address) public projects;
     uint public projectCount;
@@ -29,18 +28,19 @@ contract Artist is ERC20, ERC20Detailed {
         uint price;
         string imageUrl;
         bool isAvailable;
+        mapping (address => uint) buyers;
     }
 
     modifier verifyOwner() {require (msg.sender == owner);_;}
 
-    constructor(string memory _name, string memory _symbol, uint8 _decimals, string memory _genre, string memory _bio, string memory _location, string memory _url) 
+    constructor(string memory _name, string memory _symbol, uint8 _decimals, string memory _genre, string memory _bio, string memory _location, string memory _imageHash) 
     ERC20Detailed(_name, _symbol, _decimals)
     public {
         owner = msg.sender;
         genre = _genre;
         bio = _bio;
         location = _location;
-        url = _url;
+        imageHash = _imageHash;
         merchandiseCount = 0;
         projectCount = 0;
         _mint(msg.sender, initialSupply);
@@ -70,40 +70,46 @@ contract Artist is ERC20, ERC20Detailed {
         merchandise[id].isAvailable = false;
     }
 
-    function buyMerch(uint id, uint qty, uint value) public {
-        require (merchandise[id].quantity >= qty);
-        // require(msg.value >= merchandise[id].price * qty);//not msg.value accept erc20
-        uint purchaseAmount = qty * merchandise[id].price;
-        require (value * qty >= purchaseAmount); 
+    function buyMerch(uint id, uint qty) public {
+        Merch storage merch = merchandise[id];
+        require (merch.quantity >= qty);
+        require (merch.isAvailable == true);
 
-        this.transfer(this.owner(), value);
-        //perform purchase with specific artist token 
+        uint totalPrice = merch.price * qty;
+        uint buyerTokenBalance = this.balanceOf(msg.sender);
+
+        if (buyerTokenBalance >= totalPrice) {
+            this.transfer(this.owner(), totalPrice);
+            merch.quantity = merch.quantity - qty;
+            merch.buyers[msg.sender] += qty;
+            if (merch.quantity == 0 ){
+                merch.isAvailable == false;
+            }
+        }
     }
 
-    function createProject(uint256 rate,uint256 cap, string memory _name, string memory _description) public verifyOwner() returns(address) {
-        uint ownerBalance = balanceOf(this.owner());
+    function createProject(uint256 rate,uint256 cap, string memory _name, string memory _description, string memory _imageHash) public verifyOwner() returns(address) {
+        uint ownerBalance = this.balanceOf(this.owner());
 
-        Project newProject = new Project(rate, msg.sender, this, cap, _name, _description );
+        Project newProject = new Project(rate, msg.sender, this, cap, _name, _description, _imageHash );
         address projectAddress = address(newProject);
 
         
         emit LogProject(_name, projectAddress, owner, ownerBalance);
-
-        // this.transferFrom(owner, projectAddress, initialSupply);
         
         return projectAddress;
     }
 
-    function fetchArtist() public view returns (address _owner, string memory _genre, string memory _bio, string memory _location, string memory _url, uint _projectCount, uint _merchCount) {
-        _owner = this.owner();
-        _genre = this.genre();
-        _bio = this.bio();
-        _location = this.location();
-        _url = this.url();
-        _projectCount = this.projectCount();
-        _merchCount = 42;
-        // this.merchandiseCount();
-        return (_owner, _genre, _bio, _location, _url, _projectCount, _merchCount);
+    function fetchArtist() public view returns (string memory name, address owner, string memory genre, string memory bio, string memory location, string memory imageHash, uint projectCount, uint merchCount) {
+        owner = this.owner();
+        genre = this.genre();
+        bio = this.bio();
+        location = this.location();
+        imageHash = this.imageHash();
+        projectCount = this.projectCount();
+        merchCount = this.merchandiseCount();
+        name = this.name();
+        return (name, owner, genre, bio, location, imageHash, projectCount, merchCount);
     }
 
 

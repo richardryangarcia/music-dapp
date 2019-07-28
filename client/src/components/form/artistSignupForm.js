@@ -3,6 +3,7 @@ import {connect} from 'react-redux';
 import ipfs from '../../utils/ipfs';
 import {Formik, Form, Field, ErrorMessage} from 'formik';
 import Button from 'react-bootstrap/Button';
+import Spinner from 'react-bootstrap/Spinner';
 import { bindActionCreators } from 'redux';
 import { addArtist } from '../../redux/ArtistFactory/actions';
 
@@ -19,49 +20,24 @@ const values = {
 
 const validate = values => {
 	let errors = {};
-	// if (!values.email) {
-	// 	errors.email = 'Required';
-	// } else if (
-	// 	!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email)
-	// ) {
-	// 	errors.email = 'Invalid email address';
-	// }
+	//add form field validations here
 	return errors;
 }
-
-// const tryAsync = async (ArtistFactory, account, values) => {
-// 	const {name, symbol, genre, bio, location, url} = values;
-// 	console.log('about to submit')
-// 	const response  = await ArtistFactory.methods.addArtist(name, symbol, genre, bio, location, url).send({ from: account });
-// 	console.log('finishing submitting')
-// 	console.log(response);
-// 	return response;
-//   }
 
 class ArtistSignup extends React.Component {
 	constructor(props){
 		super(props);
 		this.state = {
-		  buffer: null,
+			buffer: null,
+			sending: false,
+			error: null,
 		  ipfsHash: '',
 		}
 	
 		this.captureFile = this.captureFile.bind(this)
 		this.onImageSubmit = this.onImageSubmit.bind(this)
-		// this.submitNewArtist = this.submitNewArtist.bind(this)
 	}
-	// async submitNewArtist  (ArtistFactory, account, values) {
-	// 	console.log(values);
-	// 	// const {name, symbol, genre, bio, location} = values;
-	// 	const {ipfsHash} = this.state;
-	// 	const payload = Object.assign(values, {ipfsHash})
-	// 	console.log('about to submit')
-	// 	this.props.actions.addArtist(payload);
-	// 	console.log('finishing submitting')
-	// 	const response ='';
-	// 	console.log(response);
-	// 	return response;
-	//   }
+
 
 	captureFile(event){
 		event.preventDefault();
@@ -75,29 +51,50 @@ class ArtistSignup extends React.Component {
 
 	onImageSubmit(event){
 		event.preventDefault();
-		console.log('submitting....');
+		this.setState({sending:true});
 		const { buffer } = this.state;
 		ipfs.add(buffer, async (error, result) => {
 		  if (error) {
-			console.log(error)
-			return
+				this.setState({sending:false, error});
+				return
 		  }
 
-		  this.setState({ipfsHash: result[0].hash});
+		  this.setState({ipfsHash: result[0].hash, sending:false});
 		  console.log(result[0].hash);
 		})
 	}
 	render(){
 		const {actions} = this.props;
-		const {ipfsHash} = this.state;
+		const {ipfsHash, sending} = this.state;
+		const buttonText = ipfsHash ? 'Saved in outerspace' : 'Save image to IPFS';
+		const color = ipfsHash ? 'success' : 'primary';
+
 		return (
 			<div className='artist-signup'>
+				<h1>Artist Register!</h1>
+				<br/>
+				<br/>
+
 				<b>Upload an image</b>
 				<form onSubmit={this.onImageSubmit}>
 					<input id='imageInput' type='file' onChange={this.captureFile} />
-					<Button size='sm' type='submit'> Save image to IPFS! </Button>
+					<Button type='submit' variant={color} disabled={sending} className='ipfs-btn'> 
+						{sending ? (
+							<div>
+								<Spinner
+									as="span"
+									animation="grow"
+									size="sm"
+									role="status"
+									aria-hidden="true"
+								/> Going Interplanetary...
+							</div>
+						) : (buttonText)}
+					 </Button>
 				</form>
 
+				<br/>
+				<br/>
 				<br/>
 				<b>Artist Info</b>
 				<Formik
@@ -116,7 +113,7 @@ class ArtistSignup extends React.Component {
 							Genre: <Field type="genre" name="genre"  className='form-control'/><br/>
 							Bio: <Field type="bio" name="bio" className='form-control' /><br/>
 							Location: <Field type="location" name="location" className='form-control' /><br/>
-							<Button type="submit" disabled={isSubmitting}>
+							<Button type="submit" disabled={isSubmitting} className='submit-btn'>
 								Submit
 							</Button>
 						</Form>

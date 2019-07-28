@@ -4,7 +4,7 @@ export const groupBy = (colCount, array) => {
 
     //loop through array
     for (let i = 0; i < array.length; i++){
-      if (rowElements.length < 3) {
+      if (rowElements.length < colCount) {
         rowElements.push(array[i]);
       } else {
         groupedElements.push(rowElements);
@@ -16,7 +16,11 @@ export const groupBy = (colCount, array) => {
     if (rowElements.length === 1) {
       rowElements.push(null);
       rowElements.push(null);
+      rowElements.push(null);
     } else if (rowElements.length === 2){
+      rowElements.push(null);
+      rowElements.push(null);
+    } else if (rowElements.length === 3){
       rowElements.push(null);
     }
 

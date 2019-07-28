@@ -52,10 +52,15 @@ export function* addArtist({payload}){
   const {name, symbol, genre, bio, location, ipfsHash} = payload;
   let {contract,account} = yield select(getFactory); 
   let response;
+
+
+  
+  console.log('about to create artist')
   if (contract) {
     response = yield contract.addArtist(name, symbol, genre, bio, location, ipfsHash).send({ from: account });
   }
 
+  console.log('artist was added!!!!!!!!!!!')
   console.log(response);
 
   yield put({

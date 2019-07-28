@@ -1,14 +1,26 @@
 import React from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import {ConnectedRouter} from 'connected-react-router';
-import ArtistSignUp from './containers/artistSignUp';
+import ArtistSignUp from './components/form/artistSignupForm';
+import AddMerchForm from './components/form/addMerch';
 import ArtistList from './containers/artistList';
 import Artist from './containers/artist';
+import ProjectCreateForm from './components/form/projectCreateForm';
 
 const routes = [
   {
     path: '/artist-signup',
     component: ArtistSignUp,
+    exact: true
+  },
+  {
+    path: '/add-merch/:id',
+    component: AddMerchForm,
+    exact: true
+  },
+  {
+    path: '/project-create/:id',
+    component: ProjectCreateForm,
     exact: true
   },
   {

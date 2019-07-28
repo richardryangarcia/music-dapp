@@ -1,4 +1,5 @@
-@import './index';
+@import '_index';
+@import './components/_card';
 @import './containers/app';
 @import './containers/artist';
 @import './components/header';

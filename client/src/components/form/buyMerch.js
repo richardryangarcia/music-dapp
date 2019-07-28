@@ -9,7 +9,7 @@ import { addMerch } from '../../redux/Artist/actions';
 
 
 const values = {
-	amount: ''
+	quantity: ''
 }
 
 const validate = values => {
@@ -18,14 +18,14 @@ const validate = values => {
 	return errors;
 }
 
-class AddMerchForm extends React.Component {
+class BuyMerchForm extends React.Component {
 	constructor(props){
 		super(props);
 	}
 
 
 	render(){
-		const {actions, artistId, projectId} = this.props;
+		const {actions, merchId, artistId} = this.props;
 
 		return (
 			<div className='contribute'>
@@ -34,15 +34,15 @@ class AddMerchForm extends React.Component {
 					validate={validate}
 					onSubmit={(values,  { setSubmitting }) => {
 						setSubmitting(true);
-            const payload = Object.assign(values, {artistId, projectId})
+            const payload = Object.assign(values, {artistId, merchId})
 						actions.addMerch(payload);
 					}}
 				>
 					{({ isSubmitting }) => (
 						<Form style={{marginLeft: '0px', marginRight: '0px'}}>
-							<b>Amount:</b> <Field type="amount" name="amount" className='form-control'/><br/>
+							<b>Quantity:</b> <Field type="quantity" name="quantity" className='form-control'/><br/>
 							<Button type="submit" disabled={isSubmitting} className='submit-btn' size='sm'>
-								Contribute
+								Buy
 							</Button>
 						</Form>
 					)}
@@ -56,4 +56,4 @@ const mapDispatchToProps = dispatch => {
 	return {actions: bindActionCreators({addMerch}, dispatch)}
 }
 
-export default connect(null, mapDispatchToProps)(AddMerchForm);
+export default connect(null, mapDispatchToProps)(BuyMerchForm);

@@ -8,11 +8,11 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Card from 'react-bootstrap/Card';
 import Image from 'react-bootstrap/Image';
-import ArtistImage from './mustache-cera.jpg';
 import ProjectGrid from '../components/projectsGrid';
 import StoreGrid from '../components/storeGrid';
 import Button from 'react-bootstrap/Button';
 import Modal from '../components/modal';
+import ProjectSection from '../components/projectsGrid';
 
 class Artist extends React.Component {
     constructor(props) {
@@ -28,35 +28,30 @@ class Artist extends React.Component {
 
     componentDidMount(){
       const {id} = this.props.match.params;
-      const {actions} = this.props;
-      actions.getArtistAddress(id);
+      const {actions, artists} = this.props;
+      const getArtist = artists && artists[id] ? false : true;
+      if (getArtist) {
+        actions.getArtistAddress(id);
+      }
     }
 
 
     render() {
         const {id} = this.props.match.params;
-        const ArtistProfile = artists && artists[`${id}`];
+        const {ArtistFactory, account, Artists, actions, projects} = this.props;
+        const {name, owner, genre, bio, location, imageHash, projectCount, merchCount} = Artists && Artists[id] || {};
+        const prods = projects && projects[id] || {};
+        const isOwner = account === owner ? true : false;
 
-
-
-
-
-
-        
-        const {ArtistFactory, account, artists, actions} = this.props;
-        const {name, owner, genre, bio, location, url, projectCount, merchCount} = artists && artists[id] || {};
-        const {artistAddress, artistLoaded} = this.state;
-
-
-        const addMerchButton = owner === account ? (<Modal label="Add new merch" artistId={id} type="addMerch" />) : (null);
-        const addProjectButton = owner === account ? (<Modal label="Add new project" artistId={id} type="addProject"/>) : (null);
+        const addMerchButton = true ? (<Button href={`/#/add-merch/${id}`} size="sm" >Add Merch</Button>) : (null);
+        const addProjectButton = true ? (<Button href={`/#/project-create/${id}`} size="sm" >Create Project</Button>) : (null);
 
         return (
             <div className='artist'>
               <Container>
                 <Row className='banner' >
                   <Col xs={12} >
-                    <Image src={ArtistImage} style={{'height': '200px', 'width': '200px'}} rounded />
+                    <Image src={`https://ipfs.io/ipfs/${imageHash}`} style={{'height': '200px', 'width': '200px'}} rounded />
                   </Col>
                 </Row>
                 <Row className='banner sub-header' >
@@ -70,26 +65,24 @@ class Artist extends React.Component {
                   <Col xs={12} >
                   </Col>
                 </Row>
+                <Row className='' >
+                  <Col xs={12} >
+                    <Card className='bio'>
+                      <Card.Body>{bio}</Card.Body>
+                    </Card>
+                  </Col>
+                </Row>
               </Container>
-              <div>
-                <Card className='bio'>
-                  <Card.Body>{bio}</Card.Body>
-                </Card>
-              </div>
 
               <div className='projects' >
-                <b>Projects</b> ( {projectCount} ) 
-                <div style={{float:'right'}}>{addProjectButton}
-                </div>
-                <hr/>
-                <ProjectGrid/>
+                <ProjectGrid artistId={id} projectCount={projectCount} projectList={prods} isOwner={isOwner}/>
               </div>
+              <br/>
+              <br/>
+              <br/>
 
               <div className='store'>
-                <b>Store</b> ( {merchCount} ) 
-                <div style={{float:'right'}}>{addMerchButton}</div>
-                <hr/>
-                <StoreGrid/>
+                <StoreGrid artistId={id} merchCount={merchCount} isOwner={isOwner} />
               </div>
             </div>
         )
@@ -100,7 +93,8 @@ const mapStateToProps = (state) => {
     return {
       account: state.application && state.application.account, 
       web3: state.application && state.application.web3,
-      artists: state.Artist,
+      Artists: state.Artist,
+      projects: state.Project,
       ArtistFactory: state.ArtistFactory
     }
 }

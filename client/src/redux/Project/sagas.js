@@ -1,6 +1,7 @@
 import {all, takeEvery, put, call, select} from 'redux-saga/effects';
-import {SET_STATE, LOAD_PROJECT} from './actions';
+import {SET_STATE, LOAD_PROJECT, CONTRIBUTE} from './actions';
 import ProjectContract from "../../contracts/Project.json";
+import { getAccount } from '../selectors';
 
 export const getProject = (state) => {
     return {
@@ -37,8 +38,15 @@ export function* loadProject(){
   })
 }
 
+export function* contribute({payload}){
+  const {artistId, projectId, amount} = payload;
+  const account = yield select(getAccount);
+
+}
+
 export default function* rootSaga() {
   yield all([
-    takeEvery(LOAD_PROJECT, loadProject())
+    takeEvery(LOAD_PROJECT, loadProject),
+    takeEvery(CONTRIBUTE, contribute)
   ])
 }

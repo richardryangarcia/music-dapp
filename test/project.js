@@ -16,22 +16,22 @@ contract('Project', (accounts) => {
 
 
     beforeEach(async () => {
-        artist = await Artist.new("Kanye West", "kw1", 18, "rap/r&b", "dat yeezus boi from the Chi", "the Chi", "kanyewest.com");
+        artist = await Artist.new("Kanye West", "kw1", 18, "rap/r&b", "dat yeezus boi from the Chi", "the Chi", "QWKJHGDFUKYGWHKJWGEKGKJWJ");
         artistOwner = await artist.owner();
 
-        project = await Project.new(1, artistOwner, artist.address, projectCapInWei, "Graduation", "3rd studio album")
+        project = await Project.new(1, artistOwner, artist.address, projectCapInWei, "Graduation", "3rd studio album", "QCXVBNNJGFGDFGHRGHJMVTHG")
 
         await artist.transfer(project.address, initialSupply);
     }); 
 
     it("have accurate values", async () => {
-        let owner = await project.owner();
-        let name = await project.name();
-        let description = await project.description();
+        let projectDetails = await project.fetchProject();
 
-        assert.equal(owner, artistOwner);
-        assert.equal(name, "Graduation");
-        assert.equal(description, "3rd studio album");
+        assert.equal(artistOwner, projectDetails.owner);
+        assert.equal("Graduation", projectDetails.name);
+        assert.equal("3rd studio album", projectDetails.description);
+        assert.equal(1, projectDetails.rate);
+        assert.equal(artistOwner, projectDetails.ownerWallet);
     });
 
     it("should process token purchase", async () => {
@@ -48,7 +48,6 @@ contract('Project', (accounts) => {
         assert.isTrue(parseInt(newContractBalance.toString()) < parseInt(contractBalance.toString()), "crowdfund contract should have less tokens after account2 purchases tokens");
         assert.isTrue(parseInt(newAccount2Balance.toString()) > parseInt(account2Balance.toString()), "buyer new balance should be greater than before");
         assert.isTrue(parseInt(newAmountRaised.toString()) > parseInt(amountRaised.toString()), "crowdfund amount raised should be greater than before sendTransaction");
-
     });
 
 

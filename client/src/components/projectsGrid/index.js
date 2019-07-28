@@ -3,6 +3,13 @@ import ProjectCard from './projectCard';
 import Container from 'react-bootstrap/Container';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
+import Card from 'react-bootstrap/Card';
+import PlaceHolder from '../../imagePlaceholder.svg';
+import ContributeForm from '../form/contribute';
+import Button from 'react-bootstrap/Button';
+import Image from 'react-bootstrap/Image';
+
+
 
 const projectsList = [
     { 
@@ -34,18 +41,68 @@ const projectsList = [
     }
 ]
 
-const ProjectsGrid = (props) => {
-    return (
-        <div>
-            <Container>
-                <Row >
-                    {projectsList.map((project)=> {
-                        return <Col ><ProjectCard project={project}/></Col>
-                    })}
-                </Row>
-            </Container>
-        </div>
-    );
+class ProjectsGrid extends React.Component {
+    constructor(props){
+        super(props);
+    }
+
+    componentDidMount() {
+
+    }
+
+    render() {
+        const {isOwner, projectCount, artistId} = this.props;
+        const addButton = isOwner ? (<Button href={`/#/project-create/${artistId}`} size="sm" >Add New</Button>) : (<div/>);
+        return (
+                <Container>
+                    <Row>
+                        <Col xs={12}>
+                            <b>Projects</b> ( {projectCount} ) 
+                        <div style={{float:'right'}}>{addButton}
+                        </div>
+                        <hr/>
+                        </Col>
+                    </Row>
+
+                        {projectsList.map((project)=> {
+                            const {projectId, ipfsHash} = project;
+                            return <Row >
+                                <Col xs={12} style={{ height: '200px', marginBottom: '30px'}} >
+                                    <Card style={{border: 'none', marginTop: '1em', marginBottom: '1em'}}>
+                                        <Container style={{margin:'0px'}}>
+                                            <Row>
+                                                <Col style={{padding: '0px'}} >
+                                                    {ipfsHash ? (
+                                                        <Card.Img variant="top" src={`https://ipfs.io/ipfs/${ipfsHash}`} style={{height:'200px', width: '200px'}} />
+                                                    ) : (
+                                                        <Card.Img variant="top" src={PlaceHolder} style={{height:'200px', width: '200px'}} />
+                                                    )}
+                                                </Col>
+                                                <Col >
+                                                    <Card.Text style={{fontSize: '10px', paddingTop: '5px'}}>
+                                                        <b>{project.name}</b>
+                                                        <br/>
+                                                        {project.description}
+                                                    </Card.Text>                                                 
+                                                </Col>
+                                                <Col>
+                                                    <Card.Text style={{fontSize: '10px', paddingTop: '5px'}}>
+                                                        <b>Goal:</b> {project.goal} <br/>
+                                                        <b>Raised:</b> {project.raised}<br/>
+                                                        {
+                                                            project.raised < project.goal ? (<ContributeForm artistId={artistId} projectId={projectId} />) : (<div/>)
+                                                        }
+                                                    </Card.Text>                                                 
+                                                </Col>
+                                            </Row>
+                                        </Container>
+                                    </Card>
+                                </Col>
+                            </Row>
+                        })}
+                </Container>
+        );
+    }
 }
 
 export default ProjectsGrid;

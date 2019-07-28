@@ -30,3 +30,19 @@
 .page {
   margin-top: 56px;
 }
+
+.spinner-page {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+}
+
+.center-spinner {
+  position: fixed;
+  width: 40px;
+  height: 40px;
+  top: 50%;
+  left: 50%;
+}

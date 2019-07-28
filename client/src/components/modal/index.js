@@ -4,6 +4,7 @@ import Modal from 'react-bootstrap/Modal';
 import Project from './project';
 import ProjectCreate from './projectCreate';
 import AddMerch from './addMerch';
+import AddArtistForm from '../form/artistSignupForm';
 
 class modalContent extends React.Component {
     constructor(props){
@@ -28,15 +29,12 @@ class modalContent extends React.Component {
         const {show} = this.state;
         const {label, id, type} = this.props;
         let contents;
-        switch(type){
-            case 'addMerch':
-                contents = <AddMerch artistId={id}/>
+        switch(label){
+            case 'Register':
+                contents = <AddArtistForm />
                 break;
             case 'addProject':
                 contents = <ProjectCreate artistId={id}/>
-                break;
-            case 'contribute':
-                contents = <Project artistId={id}/>
                 break;
         }
 
@@ -49,12 +47,7 @@ class modalContent extends React.Component {
                 <Modal show={show} onHide={this.handleClose}>
                     {contents}
                     <Modal.Footer>
-                    {/* <Button variant="secondary" onClick={this.handleClose}>
-                        Close
-                    </Button>
-                    <Button variant="primary" onClick={this.handleClose}>
-                        Save Changes
-                    </Button> */}
+
                     </Modal.Footer>
                 </Modal>
               </div>
