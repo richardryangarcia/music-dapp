@@ -1,7 +1,8 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import { bindActionCreators } from '../../../../../../Library/Caches/typescript/3.5/node_modules/redux';
-import { loadArtist } from '../redux/Artist/actions';
+import { loadArtist, getMerch, addProjectAsMinter } from '../redux/Artist/actions';
+import {loadArtistProjects} from '../redux/Project/actions';
 import {getArtistAddress} from '../redux/ArtistFactory/actions';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -11,8 +12,6 @@ import Image from 'react-bootstrap/Image';
 import ProjectGrid from '../components/projectsGrid';
 import StoreGrid from '../components/storeGrid';
 import Button from 'react-bootstrap/Button';
-import Modal from '../components/modal';
-import ProjectSection from '../components/projectsGrid';
 
 class Artist extends React.Component {
     constructor(props) {
@@ -23,28 +22,27 @@ class Artist extends React.Component {
         ArtistInstance: null,
         artistLoaded: false,
       }
-
     }
 
     componentDidMount(){
       const {id} = this.props.match.params;
       const {actions, artists} = this.props;
-      const getArtist = artists && artists[id] ? false : true;
-      if (getArtist) {
+
+      if (artists && artists[id] && artists[id].instance) {
+        actions.getArtistAddress(id);
+      } else {
         actions.getArtistAddress(id);
       }
     }
 
-
     render() {
         const {id} = this.props.match.params;
-        const {ArtistFactory, account, Artists, actions, projects} = this.props;
-        const {name, owner, genre, bio, location, imageHash, projectCount, merchCount} = Artists && Artists[id] || {};
-        const prods = projects && projects[id] || {};
+        const { account, Artists, actions, Projects, merchandise} = this.props;
+        const ArtistInstance = Artists && Artists[id] || {};
+        const StoreItems = merchandise && merchandise[id] || {};
+        const {name, owner, genre, bio, location, imageHash, projectCount, merchCount, instance, merch, buyerBalance} = ArtistInstance;
+        const prods = Projects && Projects[id] || {};
         const isOwner = account === owner ? true : false;
-
-        const addMerchButton = true ? (<Button href={`/#/add-merch/${id}`} size="sm" >Add Merch</Button>) : (null);
-        const addProjectButton = true ? (<Button href={`/#/project-create/${id}`} size="sm" >Create Project</Button>) : (null);
 
         return (
             <div className='artist'>
@@ -75,14 +73,14 @@ class Artist extends React.Component {
               </Container>
 
               <div className='projects' >
-                <ProjectGrid artistId={id} projectCount={projectCount} projectList={prods} isOwner={isOwner}/>
+                <ProjectGrid addProjectAsMinter={actions.addProjectAsMinter} loadArtistProjects={actions.loadArtistProjects} artistId={id} projectCount={projectCount} projectList={prods} isOwner={isOwner}/>
               </div>
               <br/>
               <br/>
               <br/>
 
               <div className='store'>
-                <StoreGrid artistId={id} merchCount={merchCount} isOwner={isOwner} />
+                <StoreGrid artistId={id} merchCount={merchCount} balance={buyerBalance} loadMerch={actions.getMerch} merchList={StoreItems} isOwner={isOwner} />
               </div>
             </div>
         )
@@ -92,15 +90,14 @@ class Artist extends React.Component {
 const mapStateToProps = (state) => {
     return {
       account: state.application && state.application.account, 
-      web3: state.application && state.application.web3,
+      merchandise: state.Artist && state.Artist.merchandise,
       Artists: state.Artist,
-      projects: state.Project,
-      ArtistFactory: state.ArtistFactory
+      Projects: state.Project    
     }
 }
 
 const mapDispatchToProps = dispatch => {
-  return {actions: bindActionCreators({loadArtist, getArtistAddress}, dispatch)}
+  return {actions: bindActionCreators({loadArtist, getArtistAddress, loadArtistProjects, getMerch, addProjectAsMinter}, dispatch)}
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Artist);

@@ -1,5 +1,4 @@
 import React from 'react';
-import ProjectCard from './projectCard';
 import Container from 'react-bootstrap/Container';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
@@ -7,39 +6,6 @@ import Card from 'react-bootstrap/Card';
 import PlaceHolder from '../../imagePlaceholder.svg';
 import ContributeForm from '../form/contribute';
 import Button from 'react-bootstrap/Button';
-import Image from 'react-bootstrap/Image';
-
-
-
-const projectsList = [
-    { 
-        name: 'College Dropout', 
-        description: 'The up and coming rappers first full length studio album. Get in on it now because this project is sure to make waves',
-        ipfsHash: 'QmTmnRhEiZhxGwuXq4rP7oYsvLYAFaqsgwJZmH9aMZP7AZ',
-        contributors: 49,
-        goal: 3.4,
-        raised: 3.4,
-        remainder: 0.0
-    },
-    { 
-        name: 'Late Registration', 
-        description: 'Hot off the success of his 1st full length album, Kanye goes back to work on the follow up album',
-        ipfsHash: 'QmSCxBe5iJUL8RHqd54NtVx3fXJfmMBDSk2AJPNwqFoxpj',
-        contributors: 82,
-        goal: 3.8,
-        raised: 3.8,
-        remainder: 0.0
-    },
-    { 
-        name: 'Graduation', 
-        description: '3rd full length studio album from the artist that brought you classics like College Dropout and Late Registration',
-        ipfsHash: 'QmauuPCCv885u8ZkUCq9k5wSauANjKZQtdb3oLdNxYLY9D',
-        contributors: 127,
-        goal: 4.0,
-        raised: 3.24,
-        remainder: 0.76
-    }
-]
 
 class ProjectsGrid extends React.Component {
     constructor(props){
@@ -47,12 +13,16 @@ class ProjectsGrid extends React.Component {
     }
 
     componentDidMount() {
-
+        const {artistId, loadArtistProjects} = this.props;
+        if (artistId ){
+            loadArtistProjects(artistId);
+        }
     }
 
     render() {
-        const {isOwner, projectCount, artistId} = this.props;
-        const addButton = isOwner ? (<Button href={`/#/project-create/${artistId}`} size="sm" >Add New</Button>) : (<div/>);
+        const {isOwner, projectCount, artistId, projectList, addProjectAsMinter} = this.props;
+        const projectArray = Object.values(projectList);
+        const addButton = isOwner ? (<Button variant="link" href={`/#/project-create/${artistId}`} size="sm" >Add New</Button>) : (<div/>);
         return (
                 <Container>
                     <Row>
@@ -64,33 +34,38 @@ class ProjectsGrid extends React.Component {
                         </Col>
                     </Row>
 
-                        {projectsList.map((project)=> {
-                            const {projectId, ipfsHash} = project;
+                        {projectArray.map((project)=> {
+                            const {imageHash, name, description, cap, weiRaised, projectId, projectIsMinter, address} = project;
+                            console.log('address is minter', address, projectIsMinter);
+                            if (!projectIsMinter){
+                                addProjectAsMinter({artistId, address})
+                            }
+
                             return <Row >
                                 <Col xs={12} style={{ height: '200px', marginBottom: '30px'}} >
                                     <Card style={{border: 'none', marginTop: '1em', marginBottom: '1em'}}>
                                         <Container style={{margin:'0px'}}>
                                             <Row>
                                                 <Col style={{padding: '0px'}} >
-                                                    {ipfsHash ? (
-                                                        <Card.Img variant="top" src={`https://ipfs.io/ipfs/${ipfsHash}`} style={{height:'200px', width: '200px'}} />
+                                                    {imageHash ? (
+                                                        <Card.Img variant="top" src={`https://ipfs.io/ipfs/${imageHash}`} style={{height:'200px', width: '200px', borderRadius:'10px'}} />
                                                     ) : (
-                                                        <Card.Img variant="top" src={PlaceHolder} style={{height:'200px', width: '200px'}} />
+                                                        <Card.Img variant="top" src={PlaceHolder} style={{height:'200px', width: '200px', borderRadius:'10px'}} />
                                                     )}
                                                 </Col>
                                                 <Col >
                                                     <Card.Text style={{fontSize: '10px', paddingTop: '5px'}}>
-                                                        <b>{project.name}</b>
+                                                        <b>{name}</b>
                                                         <br/>
-                                                        {project.description}
+                                                        {description}
                                                     </Card.Text>                                                 
                                                 </Col>
                                                 <Col>
                                                     <Card.Text style={{fontSize: '10px', paddingTop: '5px'}}>
-                                                        <b>Goal:</b> {project.goal} <br/>
-                                                        <b>Raised:</b> {project.raised}<br/>
+                                                        <b>Goal:</b> {cap} <br/>
+                                                        <b>Raised:</b> {weiRaised}<br/>
                                                         {
-                                                            project.raised < project.goal ? (<ContributeForm artistId={artistId} projectId={projectId} />) : (<div/>)
+                                                            parseInt(weiRaised) < parseInt(cap) ? (<ContributeForm artistId={artistId} projectId={projectId} />) : (<div/>)
                                                         }
                                                     </Card.Text>                                                 
                                                 </Col>

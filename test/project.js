@@ -5,23 +5,17 @@ const Artist = artifacts.require("./Artist.sol")
 contract('Project', (accounts) => {
 
     let artist;
-    let account1 = accounts[0];
     let account2 = accounts[1];
+    let account3 = accounts[2];
     let project;
     let projectCapInWei =  1000000000000000;
-    let initialSupply = 100000000000;
     let artistOwner;
-    let ownerBalance;
-    let totalSupply;
 
 
     beforeEach(async () => {
         artist = await Artist.new("Kanye West", "kw1", 18, "rap/r&b", "dat yeezus boi from the Chi", "the Chi", "QWKJHGDFUKYGWHKJWGEKGKJWJ");
         artistOwner = await artist.owner();
-
         project = await Project.new(1, artistOwner, artist.address, projectCapInWei, "Graduation", "3rd studio album", "QCXVBNNJGFGDFGHRGHJMVTHG")
-
-        await artist.transfer(project.address, initialSupply);
     }); 
 
     it("have accurate values", async () => {
@@ -34,21 +28,49 @@ contract('Project', (accounts) => {
         assert.equal(artistOwner, projectDetails.ownerWallet);
     });
 
-    it("should process token purchase", async () => {
-        let amountRaised = await project.weiRaised();
-        let account2Balance = await artist.balanceOf(account2);
-        let contractBalance = await artist.balanceOf(project.address)
+    it("should process token purchase ", async () => {
+        await artist.addMinter(project.address);
 
-        await project.sendTransaction({ value: 100, from: account2 });
+        const initialTotalSupply = await artist.totalSupply();
+        const intialUserBalance = await artist.balanceOf(account3);
 
-        newAccount2Balance = await artist.balanceOf(account2);
-        newAmountRaised = await project.weiRaised();
-        newContractBalance = await artist.balanceOf(project.address)
+        await project.sendTransaction( {from: account3, value: 10000})
 
-        assert.isTrue(parseInt(newContractBalance.toString()) < parseInt(contractBalance.toString()), "crowdfund contract should have less tokens after account2 purchases tokens");
-        assert.isTrue(parseInt(newAccount2Balance.toString()) > parseInt(account2Balance.toString()), "buyer new balance should be greater than before");
-        assert.isTrue(parseInt(newAmountRaised.toString()) > parseInt(amountRaised.toString()), "crowdfund amount raised should be greater than before sendTransaction");
-    });
+        const finalTotalSupply = await artist.totalSupply();
+        const finalUserBalance = await artist.balanceOf(account3);
+
+        assert.equal(initialTotalSupply.toString(), 0)
+        assert.equal(intialUserBalance.toString(), 0)
+        assert.equal(finalTotalSupply.toString(), 10000)
+        assert.equal(finalUserBalance.toString(), 10000)
+    })
+
+    it("should process token purchase && buy merch from store ", async () => {
+        await artist.addMerch("tshirt", "dope tshirt", 20, 100, "QWSFBSDFGSDREGDFGSF");
+        let merch = await artist.getMerch(0);
+        await artist.addMinter(project.address);
+        await project.sendTransaction( {from: account3, value: 10000})
+
+        const initialQuantity = merch.quantity;
+        const initialUserBalance = await artist.balanceOf(account3);
+        assert.equal(initialUserBalance.toString(), 10000)
+        assert.equal(initialQuantity.toString(), 20)
+
+        await artist.buyMerch(0, 1, 100, { from: account3 })
+
+        merch = await artist.getMerch(0);
+        const newQuantity = merch.quantity;
+        const newUserBalance = await artist.balanceOf(account3);
+
+        assert.equal(newUserBalance.toString(), 9900)
+        assert.equal(newQuantity.toString(), 19)
 
 
+
+
+        
+
+    
+
+    })
 });

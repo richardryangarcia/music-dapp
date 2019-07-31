@@ -5,11 +5,11 @@ import {Formik, Form, Field, ErrorMessage} from 'formik';
 import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 import { bindActionCreators } from 'redux';
-import { addMerch } from '../../redux/Artist/actions';
+import { buyMerch } from '../../redux/Artist/actions';
 
 
 const values = {
-	quantity: ''
+	quantity: 0
 }
 
 const validate = values => {
@@ -25,8 +25,7 @@ class BuyMerchForm extends React.Component {
 
 
 	render(){
-		const {actions, merchId, artistId} = this.props;
-
+		const {actions, merchId, artistId, price} = this.props;
 		return (
 			<div className='contribute'>
 				<Formik
@@ -34,14 +33,16 @@ class BuyMerchForm extends React.Component {
 					validate={validate}
 					onSubmit={(values,  { setSubmitting }) => {
 						setSubmitting(true);
-            const payload = Object.assign(values, {artistId, merchId})
-						actions.addMerch(payload);
+						const total = values.quantity * price;
+            const payload = Object.assign(values, {artistId, merchId, total})
+						actions.buyMerch(payload);
 					}}
 				>
-					{({ isSubmitting }) => (
+					{({ values, isSubmitting }) => (
 						<Form style={{marginLeft: '0px', marginRight: '0px'}}>
 							<b>Quantity:</b> <Field type="quantity" name="quantity" className='form-control'/><br/>
-							<Button type="submit" disabled={isSubmitting} className='submit-btn' size='sm'>
+							Total price: { values.quantity * price}
+							<Button type="submit" variant="success" disabled={isSubmitting} className='submit-btn' size='sm'>
 								Buy
 							</Button>
 						</Form>
@@ -53,7 +54,7 @@ class BuyMerchForm extends React.Component {
 }
 
 const mapDispatchToProps = dispatch => {
-	return {actions: bindActionCreators({addMerch}, dispatch)}
+	return {actions: bindActionCreators({buyMerch}, dispatch)}
 }
 
 export default connect(null, mapDispatchToProps)(BuyMerchForm);

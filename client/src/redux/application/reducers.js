@@ -5,7 +5,9 @@ const initialState = {
   web3: null, 
   account: null, 
   networkId: null,
-  web3th: null
+  web3th: null,
+  toastOpen: false,
+  toastMessage: ''
 }
 
 const applicationReducer = (state = initialState, action) => {

@@ -1,33 +1,50 @@
 import {all, takeEvery, put, call, select} from 'redux-saga/effects';
-import {SET_STATE, LOAD_ARTIST, UPDATE_ADDRESS, FETCH_ARTIST, ADD_MERCH, CREATE_PROJECT, BUY_MERCH} from './actions';
+import {SET_STATE, LOAD_ARTIST, UPDATE_ADDRESS, FETCH_ARTIST, ADD_MERCH, CREATE_PROJECT, BUY_MERCH, GET_MERCH, ADD_PROJECT_AS_MINTER} from './actions';
 import ArtistContract from "../../contracts/Artist.json";
-import {getAccount, getArtists} from '../selectors';
-import artist from '../../containers/artist';
-
-export const getProject = (state) => {
-    return {
-        account: state.application && state.application.account,
-        networkId: state.application && state.application.networkId, 
-        web3th: state.application && state.application.web3th
-    }
-}
-
-// export const getAccount = state => state.application && state.application.account
+import {getAccount, getArtists, getWeb3th} from '../selectors';
 
 export const getArtist = (state) => state.Artist
 
-
-
 export function* addMerch({payload}) {
-  console.log('in  heeeeeeere')
-  console.log(payload);
-  const {name, description, quantity, price, imageUrl, artistId} = payload;
-  let {account} = yield select(getProject); 
-  console.log(account);
-  let contract = yield getArtist(artistId)
-  console.log(contract);
-  let response = yield contract.addMerch(name, description, quantity, price, imageUrl).send({ from: account });
+  const account = yield select(getAccount);
+  const {name, description, quantity, price, ipfsHash, artistId} = payload;
+  const loadedArtists = yield select(getArtists);
+  const ArtistInstance = loadedArtists && loadedArtists[artistId] && loadedArtists[artistId].instance && loadedArtists[artistId].instance.methods;
+  let response = yield ArtistInstance.addMerch(name, description, quantity, price, ipfsHash).send({ from: account });
+}
 
+export function* getMerch({payload}){
+  const {artistId} = payload;
+  let merch = {};
+  const loadedArtists = yield select(getArtists);
+  const ArtistInstance = loadedArtists && loadedArtists[artistId] && loadedArtists[artistId].instance && loadedArtists[artistId].instance.methods;
+  const merchCount = yield ArtistInstance.merchandiseCount().call();
+
+  let i;
+  for (i = 0; i < merchCount; i++){
+    const merchObj = yield ArtistInstance.getMerch(i).call();
+    merch = Object.assign(merch, {
+      [i]: {
+        merchId: i,
+        imageUrl: merchObj.imageUrl,
+        name: merchObj.name, 
+        description: merchObj.description,
+        isAvailable: merchObj.isAvailable,
+        price: merchObj.price.toString(),
+        quantity: merchObj.quantity.toString()
+      }
+    });
+  }
+  
+  yield put({
+    type: SET_STATE,
+    payload: {
+      merchandise: {
+        [artistId]: merch
+      }
+    }
+  })
+  
 }
 
 export function* fetchArtist({payload}){
@@ -38,9 +55,11 @@ export function* fetchArtist({payload}){
     }
   })
 
+  const account = yield select(getAccount);
   const {artistId, address, instance} = payload;
   const response = yield instance.methods.fetchArtist().call();
   const {name, bio, genre, location, merchCount, projectCount, owner, imageHash} = response;
+  const buyerBalance = yield instance.methods.balanceOf(account).call();
 
 
   yield put({
@@ -56,6 +75,7 @@ export function* fetchArtist({payload}){
         bio,
         genre,
         location,
+        buyerBalance: buyerBalance.toString(),
         merchCount: merchCount.toString(),
         projectCount: projectCount.toString()
       }
@@ -67,8 +87,9 @@ export function* fetchArtist({payload}){
 export function* loadArtist({payload}){
   const {artistId, address} = payload;  
 
-  if (address != '0x0000000000000000000000000000000000000000'){
-    let {web3th} = yield select(getProject); 
+
+  if (address && address != '0x0000000000000000000000000000000000000000'){
+    let web3th = yield select(getWeb3th); 
 
     yield put({
       type: SET_STATE,
@@ -142,39 +163,34 @@ export function* createProject({payload}){
   const account = yield select(getAccount);
 
   if (ArtistInstance){
-    console.log('about to create project', parseInt(rate), parseInt(cap))
-    const response = yield ArtistInstance.createProject(parseInt(rate), parseInt(cap), name, description, ipfsHash).send({from: account});
-    console.log(response);
+    yield ArtistInstance.createProject(parseInt(rate), parseInt(cap), name, description, ipfsHash).send({from: account});
   }
-  console.log('done creating project')
 
-  
-  // let artistObject = {}
-  // artistObject[artistId] = {
-  //   address
-  // }
+  yield put({
+    type: ADD_PROJECT_AS_MINTER,
+    payload: {
+      artistId
+    }
+  })
+}
 
-  // yield put({
-  //   type: SET_STATE,
-  //   payload: {
-  //     loading: false,
-  //     [artistId]: {address}
-  //   }
-  // })
+export function* addProjectAsMinter({payload}){
+  const {artistId, address} = payload
+  const account = yield select(getAccount);
+  const loadedArtists = yield select(getArtists);
+  const ArtistInstance = loadedArtists && loadedArtists[artistId] && loadedArtists[artistId].instance && loadedArtists[artistId].instance.methods;
+  yield ArtistInstance.addMinter(address).send({from: account});
 }
 
 export function* buyMerch({payload}){
-  const {artistId, merchId, quantity} = payload;
+  const {artistId, merchId, quantity, total} = payload;
   const account = yield select(getAccount);
   const loadedArtists = yield select(getArtists);
   const ArtistInstance = loadedArtists && loadedArtists[artistId] && loadedArtists[artistId].instance && loadedArtists[artistId].instance.methods;
 
   if (ArtistInstance){
-    console.log('about to buy merch')
-    // const response = yield ArtistInstance.createProject(parseInt(rate), parseInt(cap), name, description, ipfsHash).send({from: account});
-    // console.log(response);
+    yield ArtistInstance.buyMerch(merchId,quantity, total).send({from: account});
   }
-  console.log('merch purchased')
 }
 
 export default function* rootSaga() {
@@ -184,6 +200,8 @@ export default function* rootSaga() {
     takeEvery(FETCH_ARTIST, fetchArtist),
     takeEvery(ADD_MERCH, addMerch),
     takeEvery(BUY_MERCH, buyMerch),
-    takeEvery(CREATE_PROJECT, createProject)
+    takeEvery(GET_MERCH, getMerch),
+    takeEvery(CREATE_PROJECT, createProject),
+    takeEvery(ADD_PROJECT_AS_MINTER, addProjectAsMinter)
   ])
 }

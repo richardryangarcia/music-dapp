@@ -14,8 +14,7 @@ const values = {
 	genre: '',
 	bio: '', 
 	location: '',
-	url: '',
-	imageUrl:''
+	ipfsHash: ''
 }
 
 const validate = values => {

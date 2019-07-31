@@ -54,13 +54,13 @@ class AddMerchForm extends React.Component {
 		  if (error) {
 				this.setState({sending:false, error});
 				return
-		  }
-
+			}
+			
 		  this.setState({ipfsHash: result[0].hash, sending:false});
-		  console.log(result[0].hash);
 		})
 	}
 	render(){
+		const {id} = this.props.match.params;
 		const {actions} = this.props;
 		const {ipfsHash, sending} = this.state;
 		const buttonText = ipfsHash ? 'Saved in outerspace' : 'Save image to IPFS';
@@ -99,7 +99,7 @@ class AddMerchForm extends React.Component {
 					validate={validate}
 					onSubmit={(values,  { setSubmitting }) => {
 						setSubmitting(true);
-						const payload = Object.assign(values, {ipfsHash})
+						const payload = Object.assign(values, {ipfsHash, artistId: id})
 						actions.addMerch(payload);
 					}}
 				>

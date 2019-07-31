@@ -1,7 +1,8 @@
 import {SET_STATE} from './actions';
 
 const initialState = {
-  loading: false
+  loading: false,
+  merchandise: {}
 }
 
 const ArtistReducer = (state = initialState, action) => {

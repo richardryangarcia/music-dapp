@@ -6,7 +6,7 @@ import {Formik, Form, Field, ErrorMessage} from 'formik';
 import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 import { bindActionCreators } from 'redux';
-import { createProject } from '../../redux/Artist/actions';
+import { createProject, addProjectAsMinter } from '../../redux/Artist/actions';
 
 
 const values = {
@@ -103,8 +103,8 @@ class ProjectCreateForm extends React.Component {
 					onSubmit={(values,  { setSubmitting }) => {
 						setSubmitting(true);
 						const payload = Object.assign(values, {ipfsHash,artistId: id})
-						console.log('payload', payload);
 						actions.createProject(payload);
+						// actions.addProjectAsMinter({artistId: id });
 					}}
 				>
 					{({ isSubmitting }) => (
@@ -131,7 +131,7 @@ const mapStateToProps = state => {
 }
 
 const mapDispatchToProps = dispatch => {
-	return {actions: bindActionCreators({createProject}, dispatch)}
+	return {actions: bindActionCreators({createProject, addProjectAsMinter}, dispatch)}
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(ProjectCreateForm);

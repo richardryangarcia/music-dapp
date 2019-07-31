@@ -5,7 +5,7 @@ import {Formik, Form, Field, ErrorMessage} from 'formik';
 import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 import { bindActionCreators } from 'redux';
-import { addMerch } from '../../redux/Artist/actions';
+import { contribute, addUserAsMinter } from '../../redux/Project/actions';
 
 
 const values = {
@@ -18,7 +18,7 @@ const validate = values => {
 	return errors;
 }
 
-class AddMerchForm extends React.Component {
+class ContributeForm extends React.Component {
 	constructor(props){
 		super(props);
 	}
@@ -34,14 +34,15 @@ class AddMerchForm extends React.Component {
 					validate={validate}
 					onSubmit={(values,  { setSubmitting }) => {
 						setSubmitting(true);
-            const payload = Object.assign(values, {artistId, projectId})
-						actions.addMerch(payload);
+						const payload = Object.assign(values, {artistId, projectId})
+						// actions.addUserAsMinter(payload)
+						actions.contribute(payload);
 					}}
 				>
 					{({ isSubmitting }) => (
 						<Form style={{marginLeft: '0px', marginRight: '0px'}}>
 							<b>Amount:</b> <Field type="amount" name="amount" className='form-control'/><br/>
-							<Button type="submit" disabled={isSubmitting} className='submit-btn' size='sm'>
+							<Button type="submit" variant="success" disabled={isSubmitting} className='submit-btn' size='sm'>
 								Contribute
 							</Button>
 						</Form>
@@ -53,7 +54,7 @@ class AddMerchForm extends React.Component {
 }
 
 const mapDispatchToProps = dispatch => {
-	return {actions: bindActionCreators({addMerch}, dispatch)}
+	return {actions: bindActionCreators({contribute, addUserAsMinter}, dispatch)}
 }
 
-export default connect(null, mapDispatchToProps)(AddMerchForm);
+export default connect(null, mapDispatchToProps)(ContributeForm);

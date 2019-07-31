@@ -1,5 +1,4 @@
 import React from 'react';
-import StoreCard from './storeCard';
 import Container from 'react-bootstrap/Container';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
@@ -70,58 +69,81 @@ const merchList = [
     }
 ]
 
-const StoreGrid = (props) => {
-    const {merchCount, isOwner, artistId} = props;
-    const addButton = isOwner ? (<Button href={`/#/add-merch/${artistId}`} size="sm" >Add New</Button>) : (<div/>);
-    return (
-            <Container>
-                <Row>
-                    <Col xs={12}>
-                        <b>Store</b> ( {merchCount} ) 
-                        <div style={{float:'right'}}>{addButton}
-                        </div>
-                        <hr/>
-                    </Col>
-                </Row>
-                {merchList.map((merch)=> {
-                    const {name, description, imageUrl, quantity, price, isAvailable, merchId} = merch;
-                    const buyMerchForm = quantity > 0 && isAvailable ? true : false;
-                    const label = isAvailable ? (<div style={{color:'green'}}>Available</div>) : (<div style={{color:'red'}}>Unavailable</div>);
+class StoreGrid extends React.Component{
+    constructor(props){
+        super(props);
+    }
 
-                    return (
-                        <Row >
-                            <Col xs={12} style={{ height: '200px', marginBottom: '30px'}}>
-                                <Card style={{border: 'none', marginTop: '1em', marginBottom: '1em'}}>
-                                    <Container style={{margin:'0px'}}>
-                                        <Row>
-                                            <Col style={{padding: '0px'}} >
-                                                <Card.Img variant="top" src={PlaceHolder} style={{height:'200px', width: '200px'}} />
-                                            </Col>
-                                            <Col >
-                                                <Card.Text style={{fontSize: '10px', paddingTop: '5px'}}>
-                                                    <b>{name}</b>
-                                                    <br/>
-                                                    {description}
-                                                </Card.Text>                                                 
-                                            </Col>
-                                            <Col>
-                                                <Card.Text style={{fontSize: '10px', paddingTop: '5px'}}>
-                                                    <b>Price:</b> {price} <br/>
-                                                    {label}
-                                                    {                                                    
-                                                        buyMerchForm ? (<BuyMerchForm artistId={artistId} merchId={merchId} />) : (<div/>)
-                                                    }
-                                                </Card.Text>                                                 
-                                            </Col>
-                                        </Row>
-                                    </Container>
-                                </Card>
-                            </Col>
-                        </Row>
-                    )
-                })}
-            </Container>
-    );
+    componentDidMount() {
+        const {artistId, loadMerch} = this.props;
+        if (artistId ){
+            loadMerch(artistId);
+        }
+    }
+
+    render (){
+        const {merchCount, isOwner, artistId, merchList, balance} = this.props;
+        const merchArray = Object.values(merchList);
+
+        const addButton = isOwner ? (<Button  variant="link" href={`/#/add-merch/${artistId}`} size="sm" >Add New</Button>) : (<div/>);
+        return (
+                <Container>
+                    <Row>
+                        <Col xs={12}>
+                            <div style={{display: 'inline-block'}}>
+                                <b>Store</b> ( {merchCount} ) 
+                                <div style={{color: 'green', fontSize: '10px'}}>Balance: {balance} </div>
+                            </div>
+                            <div style={{float:'right'}}>{addButton}
+                            </div>
+                            <hr/>
+                        </Col>
+                    </Row>
+                    {merchArray.map((merch)=> {
+                        const {name, imageUrl, quantity, price, isAvailable, merchId, description} = merch;
+                        const buyMerchForm = quantity > 0 && isAvailable ? true : false;
+                        const label = quantity > 0 && isAvailable ? (<div style={{color:'green'}}>Available</div>) : (<div style={{color:'red'}}>Unavailable</div>);
+
+                        return (
+                            <Row >
+                                <Col xs={12} style={{ height: '200px', marginBottom: '30px'}}>
+                                    <Card style={{border: 'none', marginTop: '1em', marginBottom: '1em'}}>
+                                        <Container style={{margin:'0px'}}>
+                                            <Row>
+                                                <Col style={{padding: '0px'}} >
+                                                    {imageUrl ? (
+                                                        <Card.Img variant="top" src={`https://ipfs.io/ipfs/${imageUrl}`} style={{height:'200px', width: '200px', borderRadius:'10px'}} />
+                                                    ) : (
+                                                        <Card.Img variant="top" src={PlaceHolder} style={{height:'200px', width: '200px', borderRadius:'10px'}} />
+                                                    )}
+                                                </Col>
+                                                <Col >
+                                                    <Card.Text style={{fontSize: '10px', paddingTop: '5px'}}>
+                                                        <b>{name}</b>
+                                                        <br/>
+                                                        {description}
+                                                    </Card.Text>                                                 
+                                                </Col>
+                                                <Col>
+                                                    <Card.Text style={{fontSize: '10px', paddingTop: '5px'}}>
+                                                        <b>Price:</b> {price} <br/>
+                                                        <b>Remaining:</b> {quantity}
+                                                        {label}
+                                                        {                                                    
+                                                            buyMerchForm ? (<BuyMerchForm price={price} artistId={artistId} merchId={merchId} />) : (<div/>)
+                                                        }
+                                                    </Card.Text>                                                 
+                                                </Col>
+                                            </Row>
+                                        </Container>
+                                    </Card>
+                                </Col>
+                            </Row>
+                        )
+                    })}
+                </Container>
+        );
+    }
 }
 
 export default StoreGrid;

@@ -1,7 +1,9 @@
 import React from 'react';
 import Header from '../components/header';
 import Spinner from 'react-bootstrap/Spinner';
+import ToastMessage from '../components/Toast';
 import {connect} from 'react-redux';
+import Toast from 'react-bootstrap/Toast';
 
 class App extends React.Component {
     constructor(props){
@@ -21,6 +23,7 @@ class App extends React.Component {
                 ) :(
                     <div>           
                         <Header/>
+                        <ToastMessage />
                         <div className='page'>
                             {this.props.children}
                         </div>
