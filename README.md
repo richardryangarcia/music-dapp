@@ -20,3 +20,8 @@ truffle compile
 truffle migrate 
 cd client 
 npm run start
+`````
+
+# Video Demo 
+https://youtu.be/lvKjxCF1yiM
+
